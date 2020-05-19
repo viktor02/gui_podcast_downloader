@@ -2,15 +2,13 @@ import PySimpleGUI as sg
 import podcastparser
 from urllib.request import urlopen, urlretrieve
 
-import time
-
 
 sg.theme('SystemDefaultForReal')
 layout = [
-    [sg.Text('Stream'), sg.InputText()
+    [sg.Text('RSS Feed'), sg.InputText(size=(70,20))
      ],
     [sg.Output(size=(88, 20))],
-    [sg.Submit("Get all"), sg.Submit("Download"), sg.Cancel()]
+    [sg.Submit("Get all"), sg.Submit("Download all"), sg.Cancel()]
 ]
 
 window = sg.Window('Podcaster', layout)
@@ -19,13 +17,9 @@ while True:
 
     feedurl = values[0]
     parsed = podcastparser.parse(feedurl, urlopen(feedurl))
-    # parsed['episodes'][0]['enclosures'][0]['file_size']
+
+    i = 0
     for episode in parsed['episodes']:
-        # podcast = {"title": parsed['episodes'][episode]['title'],
-        #            "url": parsed['episodes'][episode]['enclosures'][0]['url'],
-        #            "description": parsed['episodes'][episode]['description'],
-        #            "img": parsed['episodes'][episode]['episode_art_url']
-        #            }
         podcast = {
             "title": episode['title'],
             "url": episode['enclosures'][0]['url'],
@@ -33,10 +27,13 @@ while True:
             "img": episode['episode_art_url']
         }
         print(podcast['title'])
-
-        if event == "Download":
+        if event == "Download all":
             name = podcast['title'] + ".mp3"
+
+            i += 1
+            sg.OneLineProgressMeter('My Meter', i, len(parsed['episodes']), 'key', 'Downloading')
             urlretrieve(podcast['url'], name)
+
 
     if event in (None, 'Exit', 'Cancel'):
         break
